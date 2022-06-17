@@ -13,5 +13,5 @@ import java.io.Serializable;
 @Builder
 public class GetWalletHistoryRequest implements Serializable {
     private static final long serialVersionUID = -3058075269752680956L;
-    private Long userProfileId;
+    private Integer userId;
 }

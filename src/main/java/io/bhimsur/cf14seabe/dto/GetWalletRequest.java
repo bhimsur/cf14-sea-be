@@ -1,6 +1,5 @@
 package io.bhimsur.cf14seabe.dto;
 
-import io.bhimsur.cf14seabe.entity.UserProfile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +13,5 @@ import java.io.Serializable;
 @Builder
 public class GetWalletRequest implements Serializable {
     private static final long serialVersionUID = 1889718600459508822L;
-    private Long userProfile;
+    private Integer userId;
 }

@@ -1,5 +1,6 @@
 package io.bhimsur.cf14seabe.dto;
 
+import io.bhimsur.cf14seabe.entity.UserProfile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,5 +22,5 @@ public class GetProductListDto implements Serializable {
     private String description;
     private BigDecimal price;
     private Timestamp createDate;
-    private Long userProfileId;
+    private UserProfile userProfile;
 }
