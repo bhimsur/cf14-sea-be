@@ -1,1 +1,1 @@
-# cf14-sea-be
+# Compfest 14 Software Engineering Academy Selection
