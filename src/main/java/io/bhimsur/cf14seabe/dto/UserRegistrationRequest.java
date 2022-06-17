@@ -11,8 +11,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class GetUserProfileRequest implements Serializable {
-    private static final long serialVersionUID = -7260271928120375069L;
-    private Long userProfileId;
+public class UserRegistrationRequest implements Serializable {
+    private static final long serialVersionUID = -6433026039267787667L;
     private String userId;
+    private String password;
+    private String nameAlias;
 }
