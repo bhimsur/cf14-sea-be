@@ -27,13 +27,13 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
     private UserProfileService userProfileService;
 
     /**
-     * @param request GetWalletHistoryRequest
+     * @param metadata Metadata
      * @return GetWalletHistoryResponse
      */
     @Override
-    public GetWalletHistoryResponse get(GetWalletHistoryRequest request) {
-        log.info("Start getWalletHistory request : {}", request);
-        UserProfile userProfile = userProfileService.getUserProfile(GetUserProfileRequest.builder().userId(request.getUserId()).build());
+    public GetWalletHistoryResponse get(Metadata metadata) {
+        log.info("Start getWalletHistory metadata : {}", metadata);
+        UserProfile userProfile = userProfileService.getUserProfile(metadata);
         List<WalletHistory> dbResult = walletHistoryRepository.findAllByUserProfile(userProfile);
         return GetWalletHistoryResponse.builder()
                 .result(dbResult.stream()
@@ -64,13 +64,13 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
     }
 
     /**
-     * @param request GetWalletHistoryRequest
+     * @param metadata Metadata
      * @return GetWalletSummaryResponse
      */
     @Override
-    public GetWalletSummaryResponse getSummary(GetWalletHistoryRequest request) {
-        log.info("start getWalletSummary request : {}", request);
-        var history = get(request);
+    public GetWalletSummaryResponse getSummary(Metadata metadata) {
+        log.info("start getWalletSummary request : {}", metadata);
+        var history = get(metadata);
         return GetWalletSummaryResponse.builder()
                 .income(WalletHistoryDto.builder()
                         .id(null)

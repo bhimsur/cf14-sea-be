@@ -11,7 +11,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BuyProductRequest implements Serializable {
-    private static final long serialVersionUID = 4547746507300687461L;
-    private Long productId;
+public class Metadata implements Serializable {
+    private static final long serialVersionUID = -4832181977129804642L;
+    private Integer userId;
+    private String userAgent;
+    private String ipAddress;
 }

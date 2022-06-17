@@ -60,11 +60,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * @param request AddNewProductRequest
+     * @param request  AddNewProductRequest
+     * @param metadata Metadata
      * @return BaseResponse
      */
     @Override
-    public BaseResponse addNewProduct(AddNewProductRequest request) {
+    public BaseResponse addNewProduct(AddNewProductRequest request, Metadata metadata) {
         log.info("start addNewProduct request : {}", request);
         Product product = Product.builder()
                 .productName(request.getProductName())
@@ -79,13 +80,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * @param request BuyProductRequest
+     * @param request  BuyProductRequest
+     * @param metadata Metadata
      * @return BaseResponse
      */
     @Override
-    public BaseResponse buyProduct(BuyProductRequest request) {
-        log.info("start buyProduct request : {}", request);
-        Optional<UserProfile> userProfileOptional = userProfileRepository.findById(request.getUserProfileId());
+    public BaseResponse buyProduct(BuyProductRequest request, Metadata metadata) {
+        log.info("start buyProduct request : {}, metadata : {}", request, metadata);
+        Optional<UserProfile> userProfileOptional = userProfileRepository.getUserProfileByUserId(metadata.getUserId());
         UserProfile userProfile = userProfileOptional.orElseThrow(() -> new DataNotFoundException("User not found"));
         Optional<Wallet> dbWallet = walletRepository.findWalletByUserProfile(userProfile);
 

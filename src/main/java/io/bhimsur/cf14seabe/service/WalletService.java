@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface WalletService {
-    GetBalanceResponse getBalance(GetBalanceRequest request);
+    GetBalanceResponse getBalance(Metadata metadata);
 
-    BaseResponse balanceTransaction(BalanceTransactionRequest request);
+    BaseResponse balanceTransaction(BalanceTransactionRequest request, Metadata metadata);
 
-    GetWalletByUserProfileResponse getWalletByUserProfile(GetWalletRequest request);
+    GetWalletByUserProfileResponse getWalletByUserProfile(Metadata metadata);
 }
