@@ -2,7 +2,7 @@ package io.bhimsur.cf14seabe.service.implementation;
 
 import io.bhimsur.cf14seabe.config.JwtUtil;
 import io.bhimsur.cf14seabe.dto.BaseResponse;
-import io.bhimsur.cf14seabe.dto.GetUserProfileRequest;
+import io.bhimsur.cf14seabe.dto.Metadata;
 import io.bhimsur.cf14seabe.dto.UserLoginRequest;
 import io.bhimsur.cf14seabe.dto.UserRegistrationRequest;
 import io.bhimsur.cf14seabe.entity.UserProfile;
@@ -40,13 +40,13 @@ public class UserProfileServiceImpl implements UserProfileService {
     private JwtUtil jwtUtil;
 
     /**
-     * @param request GetUserProfileRequest
+     * @param metadata Metadata
      * @return UserProfile
      */
     @Override
-    public UserProfile getUserProfile(GetUserProfileRequest request) {
-        log.info("start getUserProfile request : {}", request);
-        var result = userProfileRepository.getUserProfileByUserId(request.getUserId());
+    public UserProfile getUserProfile(Metadata metadata) {
+        log.info("start getUserProfile metadata : {}", metadata);
+        var result = userProfileRepository.getUserProfileByUserId(metadata.getUserId());
         return result.orElseThrow(() -> new DataNotFoundException("User not found"));
     }
 
@@ -67,7 +67,6 @@ public class UserProfileServiceImpl implements UserProfileService {
         UserProfile userProfile = userProfileRepository.save(UserProfile.builder()
                 .userId(request.getUserId())
                 .nameAlias(request.getNameAlias())
-//                .password(request.getPassword())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .createDate(new Timestamp(System.currentTimeMillis()))
                 .build());

@@ -1,33 +1,35 @@
 package io.bhimsur.cf14seabe.controller;
 
-import io.bhimsur.cf14seabe.dto.GetWalletHistoryRequest;
 import io.bhimsur.cf14seabe.dto.GetWalletHistoryResponse;
 import io.bhimsur.cf14seabe.dto.GetWalletSummaryResponse;
 import io.bhimsur.cf14seabe.service.WalletHistoryService;
+import io.bhimsur.cf14seabe.util.MetadataUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/wallet/history")
 @Slf4j
 public class WalletHistoryController {
     private final WalletHistoryService walletHistoryService;
+    private final MetadataUtil metadataUtil;
 
-
-    public WalletHistoryController(WalletHistoryService walletHistoryService) {
+    public WalletHistoryController(WalletHistoryService walletHistoryService, MetadataUtil metadataUtil) {
         this.walletHistoryService = walletHistoryService;
+        this.metadataUtil = metadataUtil;
     }
 
     @GetMapping
-    public GetWalletHistoryResponse getWalletHistory(@RequestBody GetWalletHistoryRequest request) {
-        return walletHistoryService.get(request);
+    public GetWalletHistoryResponse getWalletHistory(HttpServletRequest httpServletRequest) {
+        return walletHistoryService.get(metadataUtil.constructMetadata(httpServletRequest));
     }
 
     @GetMapping("/summary")
-    public GetWalletSummaryResponse getWalletSummary(@RequestBody GetWalletHistoryRequest request) {
-        return walletHistoryService.getSummary(request);
+    public GetWalletSummaryResponse getWalletSummary(HttpServletRequest httpServletRequest) {
+        return walletHistoryService.getSummary(metadataUtil.constructMetadata(httpServletRequest));
     }
 }

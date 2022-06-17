@@ -30,13 +30,13 @@ public class WalletServiceImpl implements WalletService {
     private WalletHistoryService walletHistoryService;
 
     /**
-     * @param request GetBalanceRequest
+     * @param metadata Metadata
      * @return GetBalanceResponse
      */
     @Override
-    public GetBalanceResponse getBalance(GetBalanceRequest request) {
-        log.info("start getBalance request : {}", request);
-        GetWalletByUserProfileResponse dbWallet = getWalletByUserProfile(GetWalletRequest.builder().userId(request.getUserId()).build());
+    public GetBalanceResponse getBalance(Metadata metadata) {
+        log.info("start getBalance request : {}", metadata);
+        GetWalletByUserProfileResponse dbWallet = getWalletByUserProfile(metadata);
         Wallet wallet = dbWallet.getWallet();
         return GetBalanceResponse.builder()
                 .amount(wallet.getAmount())
@@ -48,9 +48,9 @@ public class WalletServiceImpl implements WalletService {
      * @return BaseResponse
      */
     @Override
-    public BaseResponse balanceTransaction(BalanceTransactionRequest request) {
-        log.info("start balanceTransaction request : {}", request);
-        GetWalletByUserProfileResponse wallet = getWalletByUserProfile(GetWalletRequest.builder().userId(request.getUserId()).build());
+    public BaseResponse balanceTransaction(BalanceTransactionRequest request, Metadata metadata) {
+        log.info("start balanceTransaction request : {}, metadata : {}", request, metadata);
+        GetWalletByUserProfileResponse wallet = getWalletByUserProfile(metadata);
         Wallet dbWallet = wallet.getWallet();
         UserProfile userProfile = wallet.getUserProfile();
 
@@ -78,15 +78,13 @@ public class WalletServiceImpl implements WalletService {
     }
 
     /**
-     * @param request GetWalletRequest
+     * @param metadata Metadata
      * @return GetWalletByUserProfileResponse
      */
     @Override
-    public GetWalletByUserProfileResponse getWalletByUserProfile(GetWalletRequest request) {
-        log.info("start getWalletByUserProfile request : {}", request);
-        UserProfile userProfile = userProfileService.getUserProfile(GetUserProfileRequest.builder()
-                .userId(request.getUserId())
-                .build());
+    public GetWalletByUserProfileResponse getWalletByUserProfile(Metadata metadata) {
+        log.info("start getWalletByUserProfile request : {}", metadata);
+        UserProfile userProfile = userProfileService.getUserProfile(metadata);
         Optional<Wallet> dbWallet = walletRepository.findWalletByUserProfile(userProfile);
         return GetWalletByUserProfileResponse.builder()
                 .userProfile(userProfile)
