@@ -25,9 +25,9 @@
 - [x] Get Wallet History
 - [x] Get Wallet Summary
 - [x] User Registration
-- [ ] User Login
-- [ ] User Logout
-- [ ] User Authentication / Authorization
+- [x] User Login
+- [x] User Logout
+- [x] User Authentication / Authorization
 - [ ] Send Audit
 - [ ] Generic Error Response
 - [ ] Bundle with Docker 
