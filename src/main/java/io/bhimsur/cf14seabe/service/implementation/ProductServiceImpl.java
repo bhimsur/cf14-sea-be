@@ -16,9 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,26 +39,34 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private WalletHistoryService walletHistoryService;
 
+    @Autowired
+    private Executor executor;
+
     /**
      * @return GetProductListResponse
      */
     @Override
     public GetProductListResponse getProductList() {
         log.info("start getProductList");
-        var result = productRepository.findAll();
-        return GetProductListResponse.builder()
-                .result(result.stream()
-                        .map(data -> GetProductListDto.builder()
-                                .id(data.getId())
-                                .productName(data.getProductName())
-                                .productImage(data.getProductImage())
-                                .description(data.getDescription())
-                                .price(data.getPrice())
-                                .createDate(data.getCreateDate())
-                                .userProfile(data.getUserProfileId())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
+        try {
+            var result = productRepository.findAll();
+            return GetProductListResponse.builder()
+                    .result(result.stream()
+                            .map(data -> GetProductListDto.builder()
+                                    .id(data.getId())
+                                    .productName(data.getProductName())
+                                    .productImage(data.getProductImage())
+                                    .description(data.getDescription())
+                                    .price(data.getPrice())
+                                    .createDate(data.getCreateDate())
+                                    .userProfile(data.getUserProfileId())
+                                    .build())
+                            .collect(Collectors.toList()))
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 
     /**
@@ -65,18 +75,24 @@ public class ProductServiceImpl implements ProductService {
      * @return BaseResponse
      */
     @Override
+    @Transactional
     public BaseResponse addNewProduct(AddNewProductRequest request, Metadata metadata) {
         log.info("start addNewProduct request : {}", request);
-        Product product = Product.builder()
-                .productName(request.getProductName())
-                .productImage(request.getProductImage())
-                .description(request.getDescription())
-                .price(request.getPrice())
-                .createDate(new Timestamp(System.currentTimeMillis()))
-                .build();
-        return BaseResponse.builder()
-                .success(productRepository.save(product).getId() > 0)
-                .build();
+        try {
+            Product product = Product.builder()
+                    .productName(request.getProductName())
+                    .productImage(request.getProductImage())
+                    .description(request.getDescription())
+                    .price(request.getPrice())
+                    .createDate(new Timestamp(System.currentTimeMillis()))
+                    .build();
+            return BaseResponse.builder()
+                    .success(productRepository.save(product).getId() > 0)
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 
     /**
@@ -85,40 +101,46 @@ public class ProductServiceImpl implements ProductService {
      * @return BaseResponse
      */
     @Override
+    @Transactional
     public BaseResponse buyProduct(BuyProductRequest request, Metadata metadata) {
         log.info("start buyProduct request : {}, metadata : {}", request, metadata);
-        Optional<UserProfile> userProfileOptional = userProfileRepository.getUserProfileByUserId(metadata.getUserId());
-        UserProfile userProfile = userProfileOptional.orElseThrow(() -> new DataNotFoundException("User not found"));
-        Optional<Wallet> dbWallet = walletRepository.findWalletByUserProfile(userProfile);
+        try {
+            Optional<UserProfile> userProfileOptional = userProfileRepository.getUserProfileByUserId(metadata.getUserId());
+            UserProfile userProfile = userProfileOptional.orElseThrow(() -> new DataNotFoundException("User not found"));
+            Optional<Wallet> dbWallet = walletRepository.findWalletByUserProfile(userProfile);
 
-        Wallet wallet = dbWallet.orElseGet(() -> walletRepository.save(Wallet.builder()
-                .createDate(new Timestamp(System.currentTimeMillis()))
-                .amount(BigDecimal.ZERO)
-                .userProfile(userProfile)
-                .build()));
+            Wallet wallet = dbWallet.orElseGet(() -> walletRepository.save(Wallet.builder()
+                    .createDate(new Timestamp(System.currentTimeMillis()))
+                    .amount(BigDecimal.ZERO)
+                    .userProfile(userProfile)
+                    .build()));
 
-        Optional<Product> existProduct = productRepository.findById(request.getProductId());
-        if (existProduct.isEmpty()) {
-            throw new DataNotFoundException("Product not found");
+            Optional<Product> existProduct = productRepository.findById(request.getProductId());
+            if (existProduct.isEmpty()) {
+                throw new DataNotFoundException("Product not found");
+            }
+            Product product = existProduct.get();
+            if (wallet.getAmount().compareTo(product.getPrice()) < 0) {
+                throw new InsufficientBalanceException("insufficient funds");
+            }
+
+            product.setDeleted(true);
+            wallet.setAmount(wallet.getAmount().subtract(product.getPrice()));
+            productRepository.save(product);
+            walletRepository.save(wallet);
+
+            executor.execute(() -> walletHistoryService.store(StoreWalletHistoryRequest.builder()
+                    .transactionType(TransactionType.BUY)
+                    .amount(product.getPrice())
+                    .userProfile(userProfile)
+                    .wallet(wallet)
+                    .build()));
+            return BaseResponse.builder()
+                    .success(true)
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
         }
-        Product product = existProduct.get();
-        if (wallet.getAmount().compareTo(product.getPrice()) < 0) {
-            throw new InsufficientBalanceException("insufficient funds");
-        }
-
-        product.setDeleted(true);
-        wallet.setAmount(wallet.getAmount().subtract(product.getPrice()));
-        productRepository.save(product);
-        walletRepository.save(wallet);
-
-        walletHistoryService.store(StoreWalletHistoryRequest.builder()
-                        .transactionType(TransactionType.BUY)
-                        .amount(product.getPrice())
-                        .userProfile(userProfile)
-                        .wallet(wallet)
-                .build());
-        return BaseResponse.builder()
-                .success(true)
-                .build();
     }
 }

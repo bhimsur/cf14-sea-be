@@ -13,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 
 @Service
 @Slf4j
@@ -29,6 +31,9 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private WalletHistoryService walletHistoryService;
 
+    @Autowired
+    private Executor executor;
+
     /**
      * @param metadata Metadata
      * @return GetBalanceResponse
@@ -36,11 +41,16 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public GetBalanceResponse getBalance(Metadata metadata) {
         log.info("start getBalance request : {}", metadata);
-        GetWalletByUserProfileResponse dbWallet = getWalletByUserProfile(metadata);
-        Wallet wallet = dbWallet.getWallet();
-        return GetBalanceResponse.builder()
-                .amount(wallet.getAmount())
-                .build();
+        try {
+            GetWalletByUserProfileResponse dbWallet = getWalletByUserProfile(metadata);
+            Wallet wallet = dbWallet.getWallet();
+            return GetBalanceResponse.builder()
+                    .amount(wallet.getAmount())
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 
     /**
@@ -48,33 +58,38 @@ public class WalletServiceImpl implements WalletService {
      * @return BaseResponse
      */
     @Override
+    @Transactional
     public BaseResponse balanceTransaction(BalanceTransactionRequest request, Metadata metadata) {
         log.info("start balanceTransaction request : {}, metadata : {}", request, metadata);
-        GetWalletByUserProfileResponse wallet = getWalletByUserProfile(metadata);
-        Wallet dbWallet = wallet.getWallet();
-        UserProfile userProfile = wallet.getUserProfile();
+        try {
+            GetWalletByUserProfileResponse wallet = getWalletByUserProfile(metadata);
+            Wallet dbWallet = wallet.getWallet();
+            UserProfile userProfile = wallet.getUserProfile();
 
-        if (request.getTransactionType().equals(TransactionType.TOP_UP)) {
-            dbWallet.setAmount(dbWallet.getAmount().add(request.getAmount()));
-        } else {
-            if (dbWallet.getAmount().compareTo(request.getAmount()) < 0) {
-                throw new InsufficientBalanceException("Insufficient funds");
+            if (request.getTransactionType().equals(TransactionType.TOP_UP)) {
+                dbWallet.setAmount(dbWallet.getAmount().add(request.getAmount()));
+            } else {
+                if (dbWallet.getAmount().compareTo(request.getAmount()) < 0) {
+                    throw new InsufficientBalanceException("Insufficient funds");
+                }
+                dbWallet.setAmount(dbWallet.getAmount().subtract(request.getAmount()));
             }
-            dbWallet.setAmount(dbWallet.getAmount().subtract(request.getAmount()));
+            dbWallet.setModifiedDate(new Timestamp(System.currentTimeMillis()));
+            var status = walletRepository.save(dbWallet).getId() > 0;
+
+            executor.execute(() -> walletHistoryService.store(StoreWalletHistoryRequest.builder()
+                    .wallet(dbWallet)
+                    .userProfile(userProfile)
+                    .amount(request.getAmount())
+                    .transactionType(request.getTransactionType())
+                    .build()));
+            return BaseResponse.builder()
+                    .success(status)
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
         }
-        dbWallet.setModifiedDate(new Timestamp(System.currentTimeMillis()));
-        var status = walletRepository.save(dbWallet).getId() > 0;
-
-        walletHistoryService.store(StoreWalletHistoryRequest.builder()
-                .wallet(dbWallet)
-                .userProfile(userProfile)
-                .amount(request.getAmount())
-                .transactionType(request.getTransactionType())
-                .build());
-        return BaseResponse.builder()
-                .success(status)
-                .build();
-
     }
 
     /**
@@ -84,11 +99,16 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public GetWalletByUserProfileResponse getWalletByUserProfile(Metadata metadata) {
         log.info("start getWalletByUserProfile request : {}", metadata);
-        UserProfile userProfile = userProfileService.getUserProfile(metadata);
-        Optional<Wallet> dbWallet = walletRepository.findWalletByUserProfile(userProfile);
-        return GetWalletByUserProfileResponse.builder()
-                .userProfile(userProfile)
-                .wallet(dbWallet.orElse(null))
-                .build();
+        try {
+            UserProfile userProfile = userProfileService.getUserProfile(metadata);
+            Optional<Wallet> dbWallet = walletRepository.findWalletByUserProfile(userProfile);
+            return GetWalletByUserProfileResponse.builder()
+                    .userProfile(userProfile)
+                    .wallet(dbWallet.orElse(null))
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 }

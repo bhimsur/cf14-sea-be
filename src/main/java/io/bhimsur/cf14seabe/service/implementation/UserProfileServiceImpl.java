@@ -46,8 +46,13 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public UserProfile getUserProfile(Metadata metadata) {
         log.info("start getUserProfile metadata : {}", metadata);
-        var result = userProfileRepository.getUserProfileByUserId(metadata.getUserId());
-        return result.orElseThrow(() -> new DataNotFoundException("User not found"));
+        try {
+            var result = userProfileRepository.getUserProfileByUserId(metadata.getUserId());
+            return result.orElseThrow(() -> new DataNotFoundException("User not found"));
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 
     /**
@@ -57,27 +62,32 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public BaseResponse userRegistration(UserRegistrationRequest request) {
         log.info("start userRegistration request : {}", request);
-        var userProfileCheck = userProfileRepository.getUserProfileByUserId(request.getUserId());
-        if (userProfileCheck.isPresent()) {
-            throw new DataAlreadyExistException("User already exists");
+        try {
+            var userProfileCheck = userProfileRepository.getUserProfileByUserId(request.getUserId());
+            if (userProfileCheck.isPresent()) {
+                throw new DataAlreadyExistException("User already exists");
+            }
+            if (Boolean.FALSE.equals(userIdValidation(String.valueOf(request.getUserId())))) {
+                throw new GenericException("UserId is not valid");
+            }
+            UserProfile userProfile = userProfileRepository.save(UserProfile.builder()
+                    .userId(request.getUserId())
+                    .nameAlias(request.getNameAlias())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .createDate(new Timestamp(System.currentTimeMillis()))
+                    .build());
+            Wallet wallet = Wallet.builder()
+                    .userProfile(userProfile)
+                    .amount(BigDecimal.ZERO)
+                    .createDate(new Timestamp(System.currentTimeMillis()))
+                    .build();
+            return BaseResponse.builder()
+                    .success(walletRepository.save(wallet).getId() > 0)
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
         }
-        if (Boolean.FALSE.equals(userIdValidation(String.valueOf(request.getUserId())))) {
-            throw new GenericException("UserId is not valid");
-        }
-        UserProfile userProfile = userProfileRepository.save(UserProfile.builder()
-                .userId(request.getUserId())
-                .nameAlias(request.getNameAlias())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .createDate(new Timestamp(System.currentTimeMillis()))
-                .build());
-        Wallet wallet = Wallet.builder()
-                .userProfile(userProfile)
-                .amount(BigDecimal.ZERO)
-                .createDate(new Timestamp(System.currentTimeMillis()))
-                .build();
-        return BaseResponse.builder()
-                .success(walletRepository.save(wallet).getId() > 0)
-                .build();
     }
 
     /**
@@ -98,17 +108,22 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public BaseResponse userLogin(UserLoginRequest request, HttpServletResponse httpServletResponse) {
         log.info("start Login request : {}", request);
-        Optional<UserProfile> userProfileOptional = userProfileRepository.getUserProfileByUserId(request.getUserId());
-        if (userProfileOptional.isEmpty()) {
-            throw new DataNotFoundException("user not found");
+        try {
+            Optional<UserProfile> userProfileOptional = userProfileRepository.getUserProfileByUserId(request.getUserId());
+            if (userProfileOptional.isEmpty()) {
+                throw new DataNotFoundException("user not found");
+            }
+            UserProfile userProfile = userProfileOptional.get();
+            if (!passwordEncoder.matches(request.getPassword(), userProfile.getPassword())) {
+                throw new GenericException("Invalid credentials");
+            }
+            httpServletResponse.setHeader("Access-Token", jwtUtil.generateToken(String.valueOf(userProfile.getUserId())));
+            return BaseResponse.builder()
+                    .success(true)
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
         }
-        UserProfile userProfile = userProfileOptional.get();
-        if (!passwordEncoder.matches(request.getPassword(), userProfile.getPassword())) {
-            throw new GenericException("Invalid credentials");
-        }
-        httpServletResponse.setHeader("Access-Token", jwtUtil.generateToken(String.valueOf(userProfile.getUserId())));
-        return BaseResponse.builder()
-                .success(true)
-                .build();
     }
 }

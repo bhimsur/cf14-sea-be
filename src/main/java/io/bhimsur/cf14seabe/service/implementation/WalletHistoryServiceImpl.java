@@ -33,17 +33,22 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
     @Override
     public GetWalletHistoryResponse get(Metadata metadata) {
         log.info("Start getWalletHistory metadata : {}", metadata);
-        UserProfile userProfile = userProfileService.getUserProfile(metadata);
-        List<WalletHistory> dbResult = walletHistoryRepository.findAllByUserProfile(userProfile);
-        return GetWalletHistoryResponse.builder()
-                .result(dbResult.stream()
-                        .map(data -> WalletHistoryDto.builder()
-                                .id(data.getId())
-                                .transactionType(data.getTransactionType())
-                                .amount(data.getAmount())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
+        try {
+            UserProfile userProfile = userProfileService.getUserProfile(metadata);
+            List<WalletHistory> dbResult = walletHistoryRepository.findAllByUserProfile(userProfile);
+            return GetWalletHistoryResponse.builder()
+                    .result(dbResult.stream()
+                            .map(data -> WalletHistoryDto.builder()
+                                    .id(data.getId())
+                                    .transactionType(data.getTransactionType())
+                                    .amount(data.getAmount())
+                                    .build())
+                            .collect(Collectors.toList()))
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 
     /**
@@ -53,14 +58,19 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
     @Override
     public void store(StoreWalletHistoryRequest request) {
         log.info("Start storeWalletHistory request : {}", request);
-        WalletHistory walletHistory = WalletHistory.builder()
-                .wallet(request.getWallet())
-                .userProfile(request.getUserProfile())
-                .createDate(new Timestamp(System.currentTimeMillis()))
-                .amount(request.getAmount())
-                .transactionType(request.getTransactionType())
-                .build();
-        walletHistoryRepository.save(walletHistory);
+        try {
+            WalletHistory walletHistory = WalletHistory.builder()
+                    .wallet(request.getWallet())
+                    .userProfile(request.getUserProfile())
+                    .createDate(new Timestamp(System.currentTimeMillis()))
+                    .amount(request.getAmount())
+                    .transactionType(request.getTransactionType())
+                    .build();
+            walletHistoryRepository.save(walletHistory);
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 
     /**
@@ -70,24 +80,29 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
     @Override
     public GetWalletSummaryResponse getSummary(Metadata metadata) {
         log.info("start getWalletSummary request : {}", metadata);
-        var history = get(metadata);
-        return GetWalletSummaryResponse.builder()
-                .income(WalletHistoryDto.builder()
-                        .id(null)
-                        .transactionType(TransactionType.WITHDRAW)
-                        .amount(history.getResult().stream()
-                                .filter(data -> data.getTransactionType().equals(TransactionType.WITHDRAW))
-                                .map(WalletHistoryDto::getAmount)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add))
-                        .build())
-                .outcome(WalletHistoryDto.builder()
-                        .id(null)
-                        .transactionType(TransactionType.TOP_UP)
-                        .amount(history.getResult().stream()
-                                .filter(data -> data.getTransactionType().equals(TransactionType.TOP_UP))
-                                .map(WalletHistoryDto::getAmount)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add))
-                        .build())
-                .build();
+        try {
+            var history = get(metadata);
+            return GetWalletSummaryResponse.builder()
+                    .income(WalletHistoryDto.builder()
+                            .id(null)
+                            .transactionType(TransactionType.WITHDRAW)
+                            .amount(history.getResult().stream()
+                                    .filter(data -> data.getTransactionType().equals(TransactionType.WITHDRAW))
+                                    .map(WalletHistoryDto::getAmount)
+                                    .reduce(BigDecimal.ZERO, BigDecimal::add))
+                            .build())
+                    .outcome(WalletHistoryDto.builder()
+                            .id(null)
+                            .transactionType(TransactionType.TOP_UP)
+                            .amount(history.getResult().stream()
+                                    .filter(data -> data.getTransactionType().equals(TransactionType.TOP_UP))
+                                    .map(WalletHistoryDto::getAmount)
+                                    .reduce(BigDecimal.ZERO, BigDecimal::add))
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
+            throw e;
+        }
     }
 }
