@@ -45,14 +45,12 @@ public class UserProfileServiceImpl implements UserProfileService {
      */
     @Override
     public BaseResponse userRegistration(UserRegistrationRequest request) {
-        try {
-            UserProfile userProfileCheck = getUserProfile(GetUserProfileRequest.builder().userId(request.getUserId()).build());
-            if (userProfileCheck.getId() > 1) {
-                throw new DataAlreadyExistException("User already exists");
-            }
-        } catch (DataNotFoundException ignored) {
+        log.info("start userRegistration request : {}", request);
+        var userProfileCheck = userProfileRepository.getUserProfileByUserId(Integer.parseInt(request.getUserId()));
+        if (userProfileCheck.isPresent()) {
+            throw new DataAlreadyExistException("User already exists");
         }
-        if (!userIdValidation(request.getUserId())) {
+        if (Boolean.FALSE.equals(userIdValidation(request.getUserId()))) {
             throw new GenericException("UserId is not valid");
         }
         UserProfile userProfile = userProfileRepository.save(UserProfile.builder()
@@ -67,7 +65,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .createDate(new Timestamp(System.currentTimeMillis()))
                 .build();
         return BaseResponse.builder()
-                .success(walletRepository.save(wallet).getId() > 1)
+                .success(walletRepository.save(wallet).getId() > 0)
                 .build();
     }
 
@@ -77,8 +75,8 @@ public class UserProfileServiceImpl implements UserProfileService {
      */
     @Override
     public boolean userIdValidation(String userId) {
-        var requestId = Arrays.stream(userId.substring(0, 2).split("")).map(Integer::parseInt).reduce(0, Integer::sum);
-        var resultId = Integer.parseInt(userId.substring(3, 4));
+        var requestId = Arrays.stream(userId.substring(0, 3).split("")).map(Integer::parseInt).reduce(0, Integer::sum);
+        var resultId = Integer.parseInt(userId.substring(3, 5));
         return requestId == resultId;
     }
 }

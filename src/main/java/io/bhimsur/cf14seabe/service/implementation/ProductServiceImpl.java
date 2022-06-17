@@ -69,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
                 .createDate(new Timestamp(System.currentTimeMillis()))
                 .build();
         return BaseResponse.builder()
-                .success(productRepository.save(product).getId() > 1)
+                .success(productRepository.save(product).getId() > 0)
                 .build();
     }
 

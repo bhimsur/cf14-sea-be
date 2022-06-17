@@ -63,7 +63,7 @@ public class WalletServiceImpl implements WalletService {
             dbWallet.setAmount(dbWallet.getAmount().subtract(request.getAmount()));
         }
         dbWallet.setModifiedDate(new Timestamp(System.currentTimeMillis()));
-        var status = walletRepository.save(dbWallet).getId() > 1;
+        var status = walletRepository.save(dbWallet).getId() > 0;
 
         walletHistoryService.store(StoreWalletHistoryRequest.builder()
                 .wallet(dbWallet)
