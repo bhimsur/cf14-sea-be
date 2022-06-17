@@ -53,7 +53,7 @@ public class ProductServiceImpl implements ProductService {
                                 .description(data.getDescription())
                                 .price(data.getPrice())
                                 .createDate(data.getCreateDate())
-                                .userProfileId(data.getUserProfileId().getId())
+                                .userProfile(data.getUserProfileId())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();

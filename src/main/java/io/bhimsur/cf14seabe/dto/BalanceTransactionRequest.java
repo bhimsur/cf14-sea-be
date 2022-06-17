@@ -17,5 +17,5 @@ public class BalanceTransactionRequest implements Serializable {
     private static final long serialVersionUID = 4192927361745730910L;
     private BigDecimal amount;
     private TransactionType transactionType;
-    private Long userProfileId;
+    private Integer userId;
 }

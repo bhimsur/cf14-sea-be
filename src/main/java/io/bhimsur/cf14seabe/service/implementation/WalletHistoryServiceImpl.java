@@ -33,7 +33,7 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
     @Override
     public GetWalletHistoryResponse get(GetWalletHistoryRequest request) {
         log.info("Start getWalletHistory request : {}", request);
-        UserProfile userProfile = userProfileService.getUserProfile(GetUserProfileRequest.builder().userProfileId(request.getUserProfileId()).build());
+        UserProfile userProfile = userProfileService.getUserProfile(GetUserProfileRequest.builder().userId(request.getUserId()).build());
         List<WalletHistory> dbResult = walletHistoryRepository.findAllByUserProfile(userProfile);
         return GetWalletHistoryResponse.builder()
                 .result(dbResult.stream()

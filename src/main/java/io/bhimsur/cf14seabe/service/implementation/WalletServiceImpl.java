@@ -36,7 +36,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public GetBalanceResponse getBalance(GetBalanceRequest request) {
         log.info("start getBalance request : {}", request);
-        GetWalletByUserProfileResponse dbWallet = getWalletByUserProfile(GetWalletRequest.builder().userProfile(request.getUserProfileId()).build());
+        GetWalletByUserProfileResponse dbWallet = getWalletByUserProfile(GetWalletRequest.builder().userId(request.getUserId()).build());
         Wallet wallet = dbWallet.getWallet();
         return GetBalanceResponse.builder()
                 .amount(wallet.getAmount())
@@ -50,7 +50,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public BaseResponse balanceTransaction(BalanceTransactionRequest request) {
         log.info("start balanceTransaction request : {}", request);
-        GetWalletByUserProfileResponse wallet = getWalletByUserProfile(GetWalletRequest.builder().userProfile(request.getUserProfileId()).build());
+        GetWalletByUserProfileResponse wallet = getWalletByUserProfile(GetWalletRequest.builder().userId(request.getUserId()).build());
         Wallet dbWallet = wallet.getWallet();
         UserProfile userProfile = wallet.getUserProfile();
 
@@ -85,7 +85,7 @@ public class WalletServiceImpl implements WalletService {
     public GetWalletByUserProfileResponse getWalletByUserProfile(GetWalletRequest request) {
         log.info("start getWalletByUserProfile request : {}", request);
         UserProfile userProfile = userProfileService.getUserProfile(GetUserProfileRequest.builder()
-                .userProfileId(request.getUserProfile())
+                .userId(request.getUserId())
                 .build());
         Optional<Wallet> dbWallet = walletRepository.findWalletByUserProfile(userProfile);
         return GetWalletByUserProfileResponse.builder()

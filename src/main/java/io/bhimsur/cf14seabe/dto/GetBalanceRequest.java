@@ -13,5 +13,5 @@ import java.io.Serializable;
 @Builder
 public class GetBalanceRequest implements Serializable {
     private static final long serialVersionUID = -6132831347247061281L;
-    private Long userProfileId;
+    private Integer userId;
 }

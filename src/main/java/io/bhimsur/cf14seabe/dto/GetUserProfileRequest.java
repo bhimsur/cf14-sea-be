@@ -13,6 +13,5 @@ import java.io.Serializable;
 @Builder
 public class GetUserProfileRequest implements Serializable {
     private static final long serialVersionUID = -7260271928120375069L;
-    private Long userProfileId;
-    private String userId;
+    private Integer userId;
 }

@@ -1,5 +1,6 @@
 package io.bhimsur.cf14seabe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +31,7 @@ public class UserProfile implements Serializable {
     @Column(name = "name_alias")
     private String nameAlias;
 
+    @JsonIgnore
     @Column(name = "password")
     private String password;
 
