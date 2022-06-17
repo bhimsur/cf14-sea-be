@@ -1,5 +1,6 @@
 package io.bhimsur.cf14seabe.service.implementation;
 
+import io.bhimsur.cf14seabe.constant.TransactionType;
 import io.bhimsur.cf14seabe.dto.*;
 import io.bhimsur.cf14seabe.entity.Product;
 import io.bhimsur.cf14seabe.entity.UserProfile;
@@ -10,6 +11,7 @@ import io.bhimsur.cf14seabe.repository.ProductRepository;
 import io.bhimsur.cf14seabe.repository.UserProfileRepository;
 import io.bhimsur.cf14seabe.repository.WalletRepository;
 import io.bhimsur.cf14seabe.service.ProductService;
+import io.bhimsur.cf14seabe.service.WalletHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private WalletRepository walletRepository;
+
+    @Autowired
+    private WalletHistoryService walletHistoryService;
 
     /**
      * @return GetProductListResponse
@@ -103,6 +108,13 @@ public class ProductServiceImpl implements ProductService {
         wallet.setAmount(wallet.getAmount().subtract(product.getPrice()));
         productRepository.save(product);
         walletRepository.save(wallet);
+
+        walletHistoryService.store(StoreWalletHistoryRequest.builder()
+                        .transactionType(TransactionType.BUY)
+                        .amount(product.getPrice())
+                        .userProfile(userProfile)
+                        .wallet(wallet)
+                .build());
         return BaseResponse.builder()
                 .success(true)
                 .build();
