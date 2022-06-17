@@ -28,9 +28,9 @@
 - [x] User Login
 - [x] User Logout
 - [x] User Authentication / Authorization
-- [ ] Send Audit
-- [ ] Generic Error Response
+- [x] Generic Error Response
 - [ ] Bundle with Docker 
+- [ ] Handle CORS
 
 ## Docker Info
 - Using OpenJDK 11
