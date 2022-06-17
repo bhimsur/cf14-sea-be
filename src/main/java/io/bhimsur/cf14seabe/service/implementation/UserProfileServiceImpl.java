@@ -4,15 +4,18 @@ import io.bhimsur.cf14seabe.dto.BaseResponse;
 import io.bhimsur.cf14seabe.dto.GetUserProfileRequest;
 import io.bhimsur.cf14seabe.dto.UserRegistrationRequest;
 import io.bhimsur.cf14seabe.entity.UserProfile;
+import io.bhimsur.cf14seabe.entity.Wallet;
 import io.bhimsur.cf14seabe.exception.DataAlreadyExistException;
 import io.bhimsur.cf14seabe.exception.DataNotFoundException;
 import io.bhimsur.cf14seabe.exception.GenericException;
 import io.bhimsur.cf14seabe.repository.UserProfileRepository;
+import io.bhimsur.cf14seabe.repository.WalletRepository;
 import io.bhimsur.cf14seabe.service.UserProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Arrays;
 
@@ -21,6 +24,9 @@ import java.util.Arrays;
 public class UserProfileServiceImpl implements UserProfileService {
     @Autowired
     private UserProfileRepository userProfileRepository;
+
+    @Autowired
+    private WalletRepository walletRepository;
 
     /**
      * @param request GetUserProfileRequest
@@ -49,14 +55,19 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (!userIdValidation(request.getUserId())) {
             throw new GenericException("UserId is not valid");
         }
-        UserProfile userProfile = UserProfile.builder()
+        UserProfile userProfile = userProfileRepository.save(UserProfile.builder()
                 .userId(Integer.parseInt(request.getUserId()))
                 .nameAlias(request.getNameAlias())
                 .password(request.getPassword())
                 .createDate(new Timestamp(System.currentTimeMillis()))
+                .build());
+        Wallet wallet = Wallet.builder()
+                .userProfile(userProfile)
+                .amount(BigDecimal.ZERO)
+                .createDate(new Timestamp(System.currentTimeMillis()))
                 .build();
         return BaseResponse.builder()
-                .success(userProfileRepository.save(userProfile).getId() > 1)
+                .success(walletRepository.save(wallet).getId() > 1)
                 .build();
     }
 
