@@ -30,7 +30,8 @@
 - [x] User Authentication / Authorization
 - [x] Generic Error Response
 - [ ] Bundle with Docker 
-- [ ] Handle CORS
+- [x] Handle CORS
+- [ ] Deploy
 
 ## Docker Info
 - Using OpenJDK 11
