@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -18,4 +19,5 @@ public class WalletHistoryDto implements Serializable {
     private Long id;
     private TransactionType transactionType;
     private BigDecimal amount;
+    private String timestamp;
 }

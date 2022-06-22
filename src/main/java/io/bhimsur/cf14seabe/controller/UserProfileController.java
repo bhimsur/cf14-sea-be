@@ -2,6 +2,7 @@ package io.bhimsur.cf14seabe.controller;
 
 import io.bhimsur.cf14seabe.dto.BaseResponse;
 import io.bhimsur.cf14seabe.dto.UserLoginRequest;
+import io.bhimsur.cf14seabe.dto.UserLoginResponse;
 import io.bhimsur.cf14seabe.dto.UserRegistrationRequest;
 import io.bhimsur.cf14seabe.service.UserProfileService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ public class UserProfileController {
     }
 
     @PostMapping("/login")
-    public BaseResponse userLogin(@RequestBody UserLoginRequest request, HttpServletResponse httpServletResponse) {
+    public UserLoginResponse userLogin(@RequestBody UserLoginRequest request, HttpServletResponse httpServletResponse) {
         return userProfileService.userLogin(request, httpServletResponse);
     }
 }
