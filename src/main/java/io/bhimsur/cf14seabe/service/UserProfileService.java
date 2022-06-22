@@ -1,9 +1,6 @@
 package io.bhimsur.cf14seabe.service;
 
-import io.bhimsur.cf14seabe.dto.BaseResponse;
-import io.bhimsur.cf14seabe.dto.Metadata;
-import io.bhimsur.cf14seabe.dto.UserLoginRequest;
-import io.bhimsur.cf14seabe.dto.UserRegistrationRequest;
+import io.bhimsur.cf14seabe.dto.*;
 import io.bhimsur.cf14seabe.entity.UserProfile;
 import org.springframework.stereotype.Service;
 
@@ -17,5 +14,5 @@ public interface UserProfileService {
 
     boolean userIdValidation(String userId);
 
-    BaseResponse userLogin(UserLoginRequest request, HttpServletResponse httpServletResponse);
+    UserLoginResponse userLogin(UserLoginRequest request, HttpServletResponse httpServletResponse);
 }

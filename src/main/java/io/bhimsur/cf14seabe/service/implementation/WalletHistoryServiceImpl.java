@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,12 +38,15 @@ public class WalletHistoryServiceImpl implements WalletHistoryService {
         try {
             UserProfile userProfile = userProfileService.getUserProfile(metadata);
             List<WalletHistory> dbResult = walletHistoryRepository.findAllByUserProfile(userProfile);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             return GetWalletHistoryResponse.builder()
                     .result(dbResult.stream()
+                            .sorted(Comparator.comparing(WalletHistory::getCreateDate).reversed())
                             .map(data -> WalletHistoryDto.builder()
                                     .id(data.getId())
                                     .transactionType(data.getTransactionType())
                                     .amount(data.getAmount())
+                                    .timestamp(simpleDateFormat.format(data.getCreateDate()))
                                     .build())
                             .collect(Collectors.toList()))
                     .build();

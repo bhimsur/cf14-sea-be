@@ -41,6 +41,7 @@ public class WalletHistory implements Serializable {
     private Timestamp createDate;
 
     @Column(name = "transaction_type")
+    @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
     @Column(name = "amount")

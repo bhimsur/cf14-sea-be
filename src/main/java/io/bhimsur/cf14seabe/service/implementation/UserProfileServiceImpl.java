@@ -1,10 +1,7 @@
 package io.bhimsur.cf14seabe.service.implementation;
 
 import io.bhimsur.cf14seabe.config.JwtUtil;
-import io.bhimsur.cf14seabe.dto.BaseResponse;
-import io.bhimsur.cf14seabe.dto.Metadata;
-import io.bhimsur.cf14seabe.dto.UserLoginRequest;
-import io.bhimsur.cf14seabe.dto.UserRegistrationRequest;
+import io.bhimsur.cf14seabe.dto.*;
 import io.bhimsur.cf14seabe.entity.UserProfile;
 import io.bhimsur.cf14seabe.entity.Wallet;
 import io.bhimsur.cf14seabe.exception.DataAlreadyExistException;
@@ -106,7 +103,7 @@ public class UserProfileServiceImpl implements UserProfileService {
      * @return true
      */
     @Override
-    public BaseResponse userLogin(UserLoginRequest request, HttpServletResponse httpServletResponse) {
+    public UserLoginResponse userLogin(UserLoginRequest request, HttpServletResponse httpServletResponse) {
         log.info("start Login request : {}", request);
         try {
             Optional<UserProfile> userProfileOptional = userProfileRepository.getUserProfileByUserId(request.getUserId());
@@ -118,8 +115,8 @@ public class UserProfileServiceImpl implements UserProfileService {
                 throw new GenericException("Invalid credentials");
             }
             httpServletResponse.setHeader("Access-Token", jwtUtil.generateToken(String.valueOf(userProfile.getUserId())));
-            return BaseResponse.builder()
-                    .success(true)
+            return UserLoginResponse.builder()
+                    .nameAlias(userProfile.getNameAlias())
                     .build();
         } catch (Exception e) {
             log.error("error Exception : {}, caused by : {}", e.getMessage(), e.getCause());
