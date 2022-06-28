@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.Optional;
-import java.util.concurrent.Executor;
 
 @Service
 @Slf4j
@@ -30,9 +29,6 @@ public class WalletServiceImpl implements WalletService {
 
     @Autowired
     private WalletHistoryService walletHistoryService;
-
-    @Autowired
-    private Executor executor;
 
     /**
      * @param metadata Metadata
@@ -77,7 +73,7 @@ public class WalletServiceImpl implements WalletService {
             dbWallet.setModifiedDate(new Timestamp(System.currentTimeMillis()));
             var status = walletRepository.save(dbWallet).getId() > 0;
 
-            executor.execute(() -> walletHistoryService.store(StoreWalletHistoryRequest.builder()
+            new Thread(() -> walletHistoryService.store(StoreWalletHistoryRequest.builder()
                     .wallet(dbWallet)
                     .userProfile(userProfile)
                     .amount(request.getAmount())
