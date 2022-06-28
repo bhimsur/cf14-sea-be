@@ -29,10 +29,11 @@
 - [x] User Logout
 - [x] User Authentication / Authorization
 - [x] Generic Error Response
-- [ ] Bundle with Docker 
 - [x] Handle CORS
-- [ ] Deploy
+- [x] Deploy
 
-## Docker Info
-- Using OpenJDK 11
-- Postgres Alpine
+## Deploy Information
+- Heroku JVM Buildpack
+- Heroku Posgres
+- OpenJDK 11
+
