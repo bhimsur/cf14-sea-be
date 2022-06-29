@@ -20,6 +20,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +38,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private WalletHistoryService walletHistoryService;
+
+    @Autowired
+    private Executor executor;
 
     /**
      * @return GetProductListResponse
@@ -125,7 +129,7 @@ public class ProductServiceImpl implements ProductService {
             productRepository.save(product);
             walletRepository.save(wallet);
 
-            new Thread(() -> walletHistoryService.store(StoreWalletHistoryRequest.builder()
+            executor.execute(() -> walletHistoryService.store(StoreWalletHistoryRequest.builder()
                     .transactionType(TransactionType.BUY)
                     .amount(product.getPrice())
                     .userProfile(userProfile)
