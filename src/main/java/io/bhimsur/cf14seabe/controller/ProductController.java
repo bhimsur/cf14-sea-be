@@ -23,16 +23,32 @@ public class ProductController {
         this.metadataUtil = metadataUtil;
     }
 
+    /**
+     * Get Product List
+     * @return GetProductListResponse
+     */
     @GetMapping
     public GetProductListResponse getProductList() {
         return productService.getProductList();
     }
 
+    /**
+     * Add New Product
+     * @param request AddNewProductRequest
+     * @param httpServletRequest HttpServletRequest
+     * @return BaseResponse
+     */
     @PostMapping("/add")
     public BaseResponse addNewProduct(@RequestBody AddNewProductRequest request, HttpServletRequest httpServletRequest) {
         return productService.addNewProduct(request, metadataUtil.constructMetadata(httpServletRequest));
     }
 
+    /**
+     * Buy Product
+     * @param request BuyProductRequest
+     * @param httpServletRequest HttpServletRequest
+     * @return BaseResponse
+     */
     @PostMapping("/buy")
     public BaseResponse buyProduct(@RequestBody BuyProductRequest request, HttpServletRequest httpServletRequest) {
         return productService.buyProduct(request, metadataUtil.constructMetadata(httpServletRequest));

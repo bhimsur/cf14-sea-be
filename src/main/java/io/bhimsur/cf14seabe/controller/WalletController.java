@@ -23,11 +23,22 @@ public class WalletController {
         this.metadataUtil = metadataUtil;
     }
 
+    /**
+     * Get User Balance
+     * @param httpServletRequest HttpServletRequest
+     * @return GetBalanceResponse
+     */
     @GetMapping
     public GetBalanceResponse getBalance(HttpServletRequest httpServletRequest) {
         return walletService.getBalance(metadataUtil.constructMetadata(httpServletRequest));
     }
 
+    /**
+     * Balance Transaction
+     * @param request BalanceTransactionRequest
+     * @param httpServletRequest HttpServletRequest
+     * @return BaseResponse
+     */
     @PostMapping
     public BaseResponse balanceTransaction(@RequestBody BalanceTransactionRequest request, HttpServletRequest httpServletRequest) {
         return walletService.balanceTransaction(request, metadataUtil.constructMetadata(httpServletRequest));

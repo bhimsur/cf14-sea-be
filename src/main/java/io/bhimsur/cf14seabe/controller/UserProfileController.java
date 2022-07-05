@@ -23,11 +23,22 @@ public class UserProfileController {
         this.userProfileService = userProfileService;
     }
 
+    /**
+     * User Registration
+     * @param request UserRegistrationRequest
+     * @return BaseResponse
+     */
     @PostMapping("/registration")
     public BaseResponse userRegistration(@RequestBody UserRegistrationRequest request) {
         return userProfileService.userRegistration(request);
     }
 
+    /**
+     * User Login
+     * @param request UserLoginRequest
+     * @param httpServletResponse HttpServletResponse
+     * @return UserLoginResponse
+     */
     @PostMapping("/login")
     public UserLoginResponse userLogin(@RequestBody UserLoginRequest request, HttpServletResponse httpServletResponse) {
         return userProfileService.userLogin(request, httpServletResponse);
