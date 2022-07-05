@@ -10,7 +10,7 @@
     </parent>
     <groupId>io.bhimsur</groupId>
     <artifactId>cf14-sea-be</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>cf14-sea-be</name>
     <description>cf14-sea-be</description>
     <properties>
