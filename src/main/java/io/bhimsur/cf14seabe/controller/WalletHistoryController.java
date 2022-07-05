@@ -24,11 +24,21 @@ public class WalletHistoryController {
         this.metadataUtil = metadataUtil;
     }
 
+    /**
+     * Get Wallet History
+     * @param httpServletRequest HttpServletRequest
+     * @return GetWalletHistoryResponse
+     */
     @GetMapping
     public GetWalletHistoryResponse getWalletHistory(HttpServletRequest httpServletRequest) {
         return walletHistoryService.get(metadataUtil.constructMetadata(httpServletRequest));
     }
 
+    /**
+     * Get Wallet Summary
+     * @param httpServletRequest HttpServletRequest
+     * @return GetWalletSummaryResponse
+     */
     @PostMapping("/summary")
     public GetWalletSummaryResponse getWalletSummary(HttpServletRequest httpServletRequest) {
         return walletHistoryService.getSummary(metadataUtil.constructMetadata(httpServletRequest));
