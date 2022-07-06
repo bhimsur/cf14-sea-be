@@ -11,6 +11,7 @@ import io.bhimsur.cf14seabe.repository.ProductRepository;
 import io.bhimsur.cf14seabe.repository.UserProfileRepository;
 import io.bhimsur.cf14seabe.repository.WalletRepository;
 import io.bhimsur.cf14seabe.service.ProductService;
+import io.bhimsur.cf14seabe.service.UserProfileService;
 import io.bhimsur.cf14seabe.service.WalletHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private Executor executor;
+
+    @Autowired
+    private UserProfileService userProfileService;
 
     /**
      * @return GetProductListResponse
@@ -79,12 +83,14 @@ public class ProductServiceImpl implements ProductService {
     public BaseResponse addNewProduct(AddNewProductRequest request, Metadata metadata) {
         log.info("start addNewProduct request : {}", request);
         try {
+            var userProfile = userProfileService.getUserProfile(metadata);
             Product product = Product.builder()
                     .productName(request.getProductName())
                     .productImage(request.getProductImage())
                     .description(request.getDescription())
                     .price(request.getPrice())
                     .createDate(new Timestamp(System.currentTimeMillis()))
+                    .userProfileId(userProfile)
                     .build();
             return BaseResponse.builder()
                     .success(productRepository.save(product).getId() > 0)
@@ -125,16 +131,42 @@ public class ProductServiceImpl implements ProductService {
             }
 
             product.setDeleted(true);
-            wallet.setAmount(wallet.getAmount().subtract(product.getPrice()));
+            if (!product.getUserProfileId().equals(userProfile)) {
+                wallet.setAmount(wallet.getAmount().subtract(product.getPrice()));
+            }
             productRepository.save(product);
             walletRepository.save(wallet);
 
-            executor.execute(() -> walletHistoryService.store(StoreWalletHistoryRequest.builder()
-                    .transactionType(TransactionType.BUY)
-                    .amount(product.getPrice())
-                    .userProfile(userProfile)
-                    .wallet(wallet)
-                    .build()));
+            executor.execute(() -> {
+                Optional<UserProfile> sellerProfile = userProfileRepository.getUserProfileByUserId(product.getUserProfileId().getUserId());
+                Wallet sellerWallet = walletRepository.findWalletByUserProfile(sellerProfile.orElseThrow()).orElseThrow();
+
+                if (!sellerProfile.get().getUserId().equals(userProfile.getUserId())) {
+                    sellerWallet.setAmount(sellerWallet.getAmount().add(product.getPrice()));
+                    walletRepository.save(sellerWallet);
+
+                    walletHistoryService.store(StoreWalletHistoryRequest.builder()
+                            .transactionType(TransactionType.SELL)
+                            .amount(product.getPrice())
+                            .userProfile(sellerProfile.get())
+                            .wallet(sellerWallet)
+                            .build());
+
+                    walletHistoryService.store(StoreWalletHistoryRequest.builder()
+                            .transactionType(TransactionType.BUY)
+                            .amount(product.getPrice())
+                            .userProfile(userProfile)
+                            .wallet(wallet)
+                            .build());
+                } else {
+                    walletHistoryService.store(StoreWalletHistoryRequest.builder()
+                            .transactionType(TransactionType.BUY_OWN_ITEM)
+                            .amount(BigDecimal.ZERO)
+                            .userProfile(userProfile)
+                            .wallet(wallet)
+                            .build());
+                }
+            });
             return BaseResponse.builder()
                     .success(true)
                     .build();
