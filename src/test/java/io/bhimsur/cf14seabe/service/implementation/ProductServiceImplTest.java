@@ -9,6 +9,7 @@ import io.bhimsur.cf14seabe.entity.Wallet;
 import io.bhimsur.cf14seabe.repository.ProductRepository;
 import io.bhimsur.cf14seabe.repository.UserProfileRepository;
 import io.bhimsur.cf14seabe.repository.WalletRepository;
+import io.bhimsur.cf14seabe.service.UserProfileService;
 import io.bhimsur.cf14seabe.service.WalletHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -50,6 +51,9 @@ public class ProductServiceImplTest {
 
     @MockBean
     private Executor executor;
+
+    @MockBean
+    private UserProfileService userProfileService;
 
     private final Metadata metadata = Metadata.builder()
             .ipAddress("10.1.1.1")
@@ -93,8 +97,10 @@ public class ProductServiceImplTest {
                 .thenReturn(Optional.of(userProfile));
         when(walletRepository.findWalletByUserProfile(any()))
                 .thenReturn(Optional.of(Wallet.builder().amount(BigDecimal.TEN).build()));
+        userProfile.setUserId(1234);
         when(productRepository.findById(anyLong()))
                 .thenReturn(Optional.of(Product.builder()
+                                .userProfileId(userProfile)
                                 .price(BigDecimal.ZERO)
                         .build()));
         var response = service.buyProduct(BuyProductRequest.builder()
