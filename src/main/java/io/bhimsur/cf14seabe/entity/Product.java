@@ -1,10 +1,7 @@
 package io.bhimsur.cf14seabe.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
@@ -36,6 +33,7 @@ public class Product implements Serializable {
     private String productName;
 
     @Column(name = "product_image", columnDefinition = "TEXT")
+    @ToString.Exclude
     private String productImage;
 
     @Column(name = "description")
