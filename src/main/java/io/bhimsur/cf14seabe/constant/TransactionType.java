@@ -9,5 +9,6 @@ public enum TransactionType {
     TOP_UP,
     WITHDRAW,
     BUY,
-    SELL
+    SELL,
+    BUY_OWN_ITEM
 }
