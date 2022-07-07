@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -56,6 +57,7 @@ public class ProductServiceImpl implements ProductService {
             var result = productRepository.findAll();
             return GetProductListResponse.builder()
                     .result(result.stream()
+                            .sorted(Comparator.comparing(Product::getCreateDate).reversed())
                             .map(data -> GetProductListDto.builder()
                                     .id(data.getId())
                                     .productName(data.getProductName())
